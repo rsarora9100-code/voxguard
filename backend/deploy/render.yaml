@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: voxguard-ai-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: standard
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DEBUG
+        value: "false"
+      - key: DEEPFAKE_MODEL_NAME
+        value: "mo-thecreator/Deepfake-audio-detection"
+      - key: WHISPER_MODEL_SIZE
+        value: "base"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: voxguard-db
+          property: connectionString
+
+databases:
+  - name: voxguard-db
+    plan: standard
+    databaseName: voxguard_db
+    user: voxguard

@@ -1,0 +1,2 @@
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY_PATH"] || "play-store-credentials.json")
+package_name("com.voxguard.app")

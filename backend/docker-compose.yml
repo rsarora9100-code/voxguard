@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  voxguard-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voxguard-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=False
+      - DATABASE_URL=postgresql://voxguard:voxguard_secret@postgres:5432/voxguard_db
+      - DEEPFAKE_MODEL_NAME=mo-thecreator/Deepfake-audio-detection
+      - WHISPER_MODEL_SIZE=base
+      - LOW_RISK_MAX=34
+      - MEDIUM_RISK_MAX=69
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: voxguard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: voxguard
+      POSTGRES_PASSWORD: voxguard_secret
+      POSTGRES_DB: voxguard_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voxguard -d voxguard_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:
+  hf_cache:

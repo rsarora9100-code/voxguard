@@ -1,0 +1,48 @@
+default_platform(:android)
+
+platform :android do
+  desc "Runs code quality static analysis and tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  desc "Build debug APK for device testing"
+  lane :build_debug do
+    gradle(task: "assembleDebug")
+  end
+
+  desc "Build production optimized Release APK"
+  lane :build_apk do
+    gradle(
+      task: "assembleRelease",
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE_PATH"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+      }
+    )
+  end
+
+  desc "Build Android App Bundle (.aab) for Google Play Store"
+  lane :build_bundle do
+    gradle(
+      task: "bundleRelease",
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE_PATH"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+      }
+    )
+  end
+
+  desc "Deploy to Google Play Internal Test Track"
+  lane :deploy_internal do
+    build_bundle
+    upload_to_play_store(
+      track: "internal",
+      release_status: "draft"
+    )
+  end
+end
