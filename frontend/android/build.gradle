@@ -18,14 +18,17 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+// Recommended Gradle 8+ build directory layout configuration
+rootProject.layout.buildDirectory.value(rootProject.file('../build'))
+
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.layout.buildDirectory.value(rootProject.layout.buildDirectory.dir(project.name))
 }
+
 subprojects {
     project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
